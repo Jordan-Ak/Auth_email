@@ -18,7 +18,7 @@ class CustomUser(AbstractUser, BaseModel):
     email = models.EmailField(_('email address'), blank=False, unique = True)
     phone_no = PhoneNumberField(_('phone number')) 
     password_last_changed = models.DateTimeField(_('password last changed'), null=True)
-    is_verified = models.BooleanField(_('is verified'))
+    is_verified = models.BooleanField(_('is verified'), default = False,)
 
     is_staff = models.BooleanField(
         _('staff status'),

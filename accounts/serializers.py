@@ -19,17 +19,18 @@ def validate_password(self, password) -> str :
     return password
 
 
-class UserSerializer(serializers.Serializer):
-    email = serializer.EmailField(required = True,
+class UserSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(required = True,
                             validators=[UniqueValidator(queryset=get_user_model().objects.all())])
     phone_no =PhoneNumberField(required = True,
                                 validators=[UniqueValidator(queryset=get_user_model().objects.all())])
     password = serializers.CharField(required = True, write_only = True,
                                 validators = [validate_password])
+    date_created = serializers.DateTimeField(format = "%H:%M, %d-%m-%Y")
 
     class Meta:
         model = get_user_model()
-        fields = ('id','email','first_name','last_name','phone_no','is_verified','date_created')
+        fields = ('id','email','first_name','last_name','phone_no','is_verified','date_created', 'password')
         read_only_fields = ('id','is_verified','date_created','date_updated','is_staff','is_active',)
 
     
