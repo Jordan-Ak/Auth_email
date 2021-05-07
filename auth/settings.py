@@ -46,6 +46,10 @@ INSTALLED_APPS = [
     #Third-Party apps
     'rest_framework',
     'drf_yasg',
+    'phonenumber_field',
+
+    #My apps
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -59,6 +63,13 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'auth.urls'
+
+#Custom User Model
+AUTH_USER_MODEL = 'accounts.CustomUser'
+
+#Phone settings
+PHONENUMBER_DB_FORMAT = 'INTERNATIONAL'
+PHONENUMBER_DEFAULT_REGION = 'NG'
 
 TEMPLATES = [
     {
@@ -114,7 +125,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Lagos'
 
 USE_I18N = True
 
