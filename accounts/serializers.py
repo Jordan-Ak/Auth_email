@@ -5,7 +5,7 @@ from rest_framework.validators import UniqueValidator
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth import get_user_model
 
-def validate_password(self, password) -> str :
+def validate_password(password) -> str :
     min_length = 7
 
     if len(password) < min_length:
@@ -26,7 +26,7 @@ class UserSerializer(serializers.ModelSerializer):
                                 validators=[UniqueValidator(queryset=get_user_model().objects.all())])
     password = serializers.CharField(required = True, write_only = True,
                                 validators = [validate_password])
-    date_created = serializers.DateTimeField(format = "%H:%M, %d-%m-%Y")
+    date_created = serializers.DateTimeField(format = "%H:%M, %d-%m-%Y", read_only = True,)
 
     class Meta:
         model = get_user_model()
@@ -34,7 +34,7 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ('id','is_verified','date_created','date_updated','is_staff','is_active',)
 
     
-    def create(self, **validated_data) -> get_user_model:
+    def create(self, validated_data) -> get_user_model:
         user: get_user_model = get_user_model().objects.create_user(**validated_data)
         return user
 

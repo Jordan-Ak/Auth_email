@@ -104,8 +104,13 @@ WSGI_APPLICATION = 'auth.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2', #Remember to install psycopg2 (pip install psycopg2)
+        'NAME': 'AUTH2', #This name has to be the exact name as the database you setup in pgadmin 4
+        'USER': env.str('USER'),#Default username for postgresql after install postgresql
+        'PASSWORD': env.str('PASSWORD'),#Remember the password you used during installation.
+        'HOST': '127.0.0.1', #Host server as the name says.
+        'PORT': env.int('PORT'), #This was the port used during installation.
+
     }
 }
 
