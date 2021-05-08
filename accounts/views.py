@@ -20,7 +20,7 @@ class ListUsersView(generics.ListAPIView):
     permission_classes = [permissions.IsAdminUser, ]
 
 
-class CurrentUserView(APIView):
+class SignUpView(APIView):
     serializer_class = UserSerializer
 
     @swagger_auto_schema(operation_id='User-Creation', operation_description='Creates a new user',
@@ -31,5 +31,18 @@ class CurrentUserView(APIView):
         serializer.is_valid(raise_exception = True)
         serializer.save()
         return Response({'message':'User Created Successfully'}, status = status.HTTP_201_CREATED)
+    
+class CurrentUserView(APIView):
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(operation_id='User-GET', operation_description = 'fetch current user',
+                            request_body = UserSerializer,
+                            responses ={'200': UserSerializer()})
+    def get(self, request, *args, **kwargs):
+        serializer = self.serializer_class(request.user)
+        return Response(serializer.data, status = status.HTTP_200_OK)
+
+    
 
         
