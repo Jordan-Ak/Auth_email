@@ -84,19 +84,20 @@ class UserDeleteView(generics.RetrieveDestroyAPIView):
     lookup_field = 'email'
     queryset = get_user_model().objects.all()
         
-"""
+
 class UserPasswordChangeView(APIView):
     serializer_class = PasswordChangeSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def put(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data = request.data, context={'request': request})
+        partial = kwargs.pop('partial', False)
+        serializer = self.serializer_class(data = request.data, instance=request.user,
+                                                        context={'request': request})
         serializer.is_valid(raise_exception = True)
         serializer.save()
-
         return Response({'message': 'Password has been changed successfully'}, status=status.HTTP_200_OK)
-"""
 
+'''
 class UserPasswordChangeView(generics.UpdateAPIView):
 
     queryset = get_user_model().objects.all()
@@ -106,4 +107,4 @@ class UserPasswordChangeView(generics.UpdateAPIView):
     def put(self, request, *args, **kwargs):
         self.update(request, *args, **kwargs)
         return  Response({'message': 'Password has been changed successfully'}, status=status.HTTP_200_OK)
-        
+'''       
