@@ -38,7 +38,9 @@ class UserSerializer(serializers.ModelSerializer):
         user: get_user_model = get_user_model().objects.create_user(**validated_data)
         return user
 
-    def update(self, instance: get_user_model, **validated_data) -> get_user_model:
+
+    def update(self, instance: get_user_model, validated_data) -> get_user_model:
+        
         instance.first_name = validated_data.get('first_name', instance.first_name)
         instance.last_name = validated_data.get('last_name', instance.last_name)
         instance.save()

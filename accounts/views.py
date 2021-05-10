@@ -31,7 +31,10 @@ class SignUpView(APIView):
         serializer.is_valid(raise_exception = True)
         serializer.save()
         return Response({'message':'User Created Successfully'}, status = status.HTTP_201_CREATED)
-    
+
+"""
+The Code below works the same as the code used except url problem
+
 class CurrentUserView(APIView):
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -43,6 +46,41 @@ class CurrentUserView(APIView):
         serializer = self.serializer_class(request.user)
         return Response(serializer.data, status = status.HTTP_200_OK)
 
-    
+    @swagger_auto_schema(operation_id = 'User-PUT', operation_description = 'User update',
+                            request_body = UserSerializer,
+                            responses = {'200': 'User update Successful'})
+    def put(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial',False)
+        serializer = self.serializer_class(data=request.data, instance=request.user, partial=partial)
+        serializer.is_valid(raise_exception = True)
+        serializer.save()
+        return Response({'message':'User updated Successfully'})
 
+    @swagger_auto_schema(operation_id = 'User-PATCH', operation_description = 'User partial update',
+                            request_body = UserSerializer,
+                            responses = {'200': 'User Partial Update Successful'})
+    def patch(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        return self.put(request, args, kwargs)
+"""
+
+class CurrentUserView(generics.RetrieveUpdateAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'email'
+
+    def get_queryset(self):
+        """ Queryset filters depending on if user is staff or is current user"""
+        if self.request.user.is_staff:
+            return get_user_model().objects.all()
+        else:
+            user = get_user_model().objects.filter(email = self.request.user.email)
+            return user
+
+
+class UserDeleteView(generics.RetrieveDestroyAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [permissions.AllowAny]
+    lookup_field = 'email'
+    queryset = get_user_model().objects.all()
         
