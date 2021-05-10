@@ -6,7 +6,7 @@ from rest_framework import generics
 
 from drf_yasg.utils import swagger_auto_schema
 
-from accounts.serializers import UserSerializer
+from accounts.serializers import UserSerializer, PasswordChangeSerializer
 from django.contrib.auth import get_user_model
 
 # Create your views here.
@@ -84,3 +84,22 @@ class UserDeleteView(generics.RetrieveDestroyAPIView):
     lookup_field = 'email'
     queryset = get_user_model().objects.all()
         
+
+class UserPasswordChangeView(APIView):
+    serializer_class = PasswordChangeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def put(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data = request.data, context={'request': request})
+        serializer.is_valid(raise_exception = True)
+        serializer.save()
+
+        return Response({'message': 'Password has been changed successfully'}, status=status.HTTP_200_OK)
+
+'''
+class UserPasswordChangeView(generics.UpdateAPIView):
+
+    queryset = get_user_model().objects.all()
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = PasswordChangeSerializer
+'''
