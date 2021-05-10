@@ -26,16 +26,33 @@ class UserSerializer(serializers.ModelSerializer):
                                 validators=[UniqueValidator(queryset=get_user_model().objects.all())])
     password = serializers.CharField(required = True, write_only = True,
                                 validators = [validate_password])
+    password2 = serializers.CharField(required = True, write_only = True,
+                                validators = [validate_password])
+
     date_created = serializers.DateTimeField(format = "%H:%M, %d-%m-%Y", read_only = True,)
 
     class Meta:
         model = get_user_model()
-        fields = ('id','email','first_name','last_name','phone_no','is_verified','date_created', 'password')
+        fields = ('id','email','first_name','last_name','phone_no','is_verified','date_created', 'password',
+                    'password2')
         read_only_fields = ('id','is_verified','date_created','date_updated','is_staff','is_active',)
 
+
+    def validate(self, attrs):
+        if attrs['password'] != attrs['password2']:
+            raise serializers.ValidationError(_('Passwords do not match'))
+        
+        return attrs
     
     def create(self, validated_data) -> get_user_model:
-        user: get_user_model = get_user_model().objects.create_user(**validated_data)
+        user: get_user_model = get_user_model().objects.create(
+                                email = validated_data['email'],
+                                first_name = validated_data['first_name'],
+                                last_name = validated_data['last_name'],
+                                phone_no = validated_data['phone_no'],
+                                )
+        user.set_password(validated_data['password'])
+        user.save()
         return user
 
 
@@ -45,3 +62,6 @@ class UserSerializer(serializers.ModelSerializer):
         instance.last_name = validated_data.get('last_name', instance.last_name)
         instance.save()
         return instance
+
+#class PasswordChangeSerializer(serializers.ModelSerializer):
+
