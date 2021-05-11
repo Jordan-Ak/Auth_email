@@ -3,6 +3,9 @@ import uuid
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
+'''
+This is the model in which every other model inherits.
+'''
 
 class BaseModel(models.Model):
     id = models.UUIDField(_('id'), primary_key = True, default = uuid.uuid4)

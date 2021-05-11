@@ -10,6 +10,10 @@ from common.models import BaseModel
 from phonenumber_field.modelfields import PhoneNumberField
 
 # Create your models here.
+'''
+Custom user model in which user data would be managed.
+it deals exclusively with email, phone_no and name registration
+'''
 
 class CustomUser(AbstractUser, BaseModel):
     """

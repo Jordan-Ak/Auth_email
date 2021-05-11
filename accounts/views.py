@@ -69,11 +69,16 @@ class CurrentUserView(APIView):
 """
 
 class CurrentUserView(generics.RetrieveUpdateAPIView):
+    '''
+    Only first_name and last name are subjected to patch request
+    due to overidden update method on serializer
+    attempt to override anything else silently fails.
+    '''
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
     lookup_field = 'email'
 
-    def get_queryset(self):
+    def get_queryset(self) -> get_user_model():
         """ Queryset filters depending on if user is staff or is current user"""
         if self.request.user.is_staff:
             return get_user_model().objects.all()
@@ -93,9 +98,14 @@ class UserPasswordChangeView(APIView):
     serializer_class = PasswordChangeSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+
+    @swagger_auto_schema(operation_id = 'User-PUT', operation_description = 'User password change',
+                            request_body = PasswordChangeSerializer,
+                            responses = {'200': 'User Password change successful'})
     def put(self, request, *args, **kwargs):
         user = get_object_or_404(get_user_model(),id = kwargs['id'])
         user_id = user.id
+       
         if user_id != request.user.id: #Code to ensure the correct user can change the password
            return Response({'message': 'Not Correct user for endpoint'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -122,6 +132,9 @@ class UserPasswordChangeView(generics.UpdateAPIView):
 class UserEmailVerificationView(APIView):
     permission_classes = [permissions.AllowAny]
 
+    @swagger_auto_schema(operation_id = 'User-GET', operation_description = 'User password change',
+                            request_body = 'UserEmailVerificationView',
+                            responses = {'200': 'User email verified successfully'})
     def get(self, request, *args, **kwargs):
         #user = self.request.user
         user= get_object_or_404(get_user_model(),
@@ -140,6 +153,9 @@ class UserEmailVerificationView(APIView):
 class UserResendEmailVerificationView(APIView):
     permissions_classes = [permissions.IsAuthenticated]
 
+    @swagger_auto_schema(operation_id = 'User-POST', operation_description = 'User resend email verification',
+                            request_body = 'UserResendEmailVerificationView',
+                            responses = {'200': 'Verification mail sent successfully'})
     def post(self, request, *args, **kwargs):
         
         user = get_object_or_404(get_user_model(), id = kwargs['id'])        

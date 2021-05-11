@@ -8,7 +8,7 @@ from rest_framework.validators import UniqueValidator
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth import get_user_model
 
-def validate_password(password) -> str :
+def validate_password(password) -> str : #For custom password validation
     min_length = 7
 
     if len(password) < min_length:
@@ -21,7 +21,7 @@ def validate_password(password) -> str :
         raise serializers.ValidationError(_('Password must contain at least one letter.'))
     return password
 
-def email_verification_flow(user):
+def email_verification_flow(user) -> None:  # To send verification email
     user.generate_email_verification_token()
     mail_message = 'This is your email verification link'
     send_mail(
@@ -51,7 +51,7 @@ class UserSerializer(serializers.ModelSerializer):
                             'password_last_changed')
 
 
-    def validate(self, attrs):
+    def validate(self, attrs) -> str:
         if attrs['password'] != attrs['password2']:
             raise serializers.ValidationError(_('Passwords do not match'))
         
@@ -92,20 +92,20 @@ class PasswordChangeSerializer(serializers.ModelSerializer):
         model = get_user_model()
         fields = ('old_password', 'password', 'password2','password_last_changed')
 
-    def validate(self, attrs):
+    def validate(self, attrs) -> str:
         if attrs['password'] != attrs['password2']:
             raise serializers.ValidationError({"password": "Password fields didn't match."})
 
         return attrs
 
-    def validate_old_password(self, value):
+    def validate_old_password(self, value) -> str:
 
         user = self.context['request'].user
         if not user.check_password(value):
             raise serializers.ValidationError({"old_password": "Old password is not correct"})
         return value
 
-    def update(self, instance, validated_data):
+    def update(self, instance, validated_data) -> get_user_model():
 
         instance.set_password(validated_data['password'])
         instance.password_last_changed = timezone.now()
