@@ -1,7 +1,9 @@
 
 from django.urls import path
 from accounts.views import (ListUsersView, CurrentUserView,
-                            SignUpView,UserDeleteView, UserPasswordChangeView)
+                            SignUpView, UserDeleteView, UserPasswordChangeView,
+                            UserEmailVerificationView,
+                            UserResendEmailVerificationView)
 
 app_name = 'accounts'
 
@@ -10,5 +12,9 @@ urlpatterns = [
     path('signup/', SignUpView.as_view(), name = 'sign-up'),
     path('@me/<str:email>/', CurrentUserView.as_view(), name = 'current-user'),
     path('destroy/<str:email>/', UserDeleteView.as_view(), name = 'user-delete'),
-    path('password/change/<str:id>/', UserPasswordChangeView.as_view(), name = 'password-change')
-]
+    path('password/change/<str:id>/', UserPasswordChangeView.as_view(), name = 'password-change'),
+    path('verify_mail/<str:email_verification_token>/', UserEmailVerificationView.as_view(),
+                                                    name = 'email-verify'),
+    path('resend_mail/<str:id>/', UserResendEmailVerificationView.as_view(),
+                                                   name = 'email-resend'),  
+    ]

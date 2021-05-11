@@ -1,7 +1,9 @@
 from django.utils import timezone
+from django.core.mail import send_mail
 from rest_framework import serializers
 from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework.validators import UniqueValidator
+
 
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth import get_user_model
@@ -19,6 +21,15 @@ def validate_password(password) -> str :
         raise serializers.ValidationError(_('Password must contain at least one letter.'))
     return password
 
+def email_verification_flow(user):
+    user.generate_email_verification_token()
+    mail_message = 'This is your email verification link'
+    send_mail(
+        'Email Verification at AUTH',
+        f'{mail_message}  http://127.0.0.1:8000/accounts/verify_mail/{user.email_verification_token}',
+        'from admin@email.com',
+        [f'{user.email}'],
+        fail_silently = False,)
 
 class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required = True,
@@ -54,6 +65,9 @@ class UserSerializer(serializers.ModelSerializer):
                                 phone_no = validated_data['phone_no'],
                                 )
         user.set_password(validated_data['password'])
+     
+        email_verification_flow(user)
+        
         user.save()
         return user
 
@@ -85,7 +99,7 @@ class PasswordChangeSerializer(serializers.ModelSerializer):
         return attrs
 
     def validate_old_password(self, value):
-               
+
         user = self.context['request'].user
         if not user.check_password(value):
             raise serializers.ValidationError({"old_password": "Old password is not correct"})

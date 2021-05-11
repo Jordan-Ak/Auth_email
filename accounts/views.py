@@ -3,11 +3,14 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import permissions
 from rest_framework import generics, serializers
+from rest_framework.generics import get_object_or_404
 
 from drf_yasg.utils import swagger_auto_schema
 
 from accounts.serializers import UserSerializer, PasswordChangeSerializer
+from accounts.serializers import email_verification_flow
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 
 # Create your views here.
 
@@ -30,7 +33,8 @@ class SignUpView(APIView):
         serializer = self.serializer_class(data = request.data)
         serializer.is_valid(raise_exception = True)
         serializer.save()
-        return Response({'message':'User Created Successfully'}, status = status.HTTP_201_CREATED)
+        return Response({'message':'User Created Successfully, verify your email'},
+                                                     status = status.HTTP_201_CREATED)
 
 """
 The Code below works the same as the code used except url problem
@@ -90,10 +94,10 @@ class UserPasswordChangeView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def put(self, request, *args, **kwargs):
-        user = get_user_model().objects.get(id = kwargs['id'])
+        user = get_object_or_404(get_user_model(),id = kwargs['id'])
         user_id = user.id
         if user_id != request.user.id: #Code to ensure the correct user can change the password
-            raise serializers.ValidationError({"Not correct user for endpoint"})
+           return Response({'message': 'Not Correct user for endpoint'}, status=status.HTTP_400_BAD_REQUEST)
 
         partial = kwargs.pop('partial', False)
         serializer = self.serializer_class(data = request.data, instance=request.user,
@@ -114,3 +118,44 @@ class UserPasswordChangeView(generics.UpdateAPIView):
         self.update(request, *args, **kwargs)
         return  Response({'message': 'Password has been changed successfully'}, status=status.HTTP_200_OK)
 '''
+
+class UserEmailVerificationView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        #user = self.request.user
+        user= get_object_or_404(get_user_model(),
+                                    email_verification_token = kwargs['email_verification_token'])
+        if user:
+            if user.has_email_verification_token_expired():
+             return Response({'error': 'Token is expired'}, status=status.HTTP_400_BAD_REQUEST)
+
+            elif user.is_verified:
+                return Response({'Error' : ' User is already verified'}, status=status.HTTP_400_BAD_REQUEST)
+
+            else:
+                user.confirm_email()
+                return  Response({'message': 'Your email has been verified.'}, status=status.HTTP_200_OK)
+
+class UserResendEmailVerificationView(APIView):
+    permissions_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        
+        user = get_object_or_404(get_user_model(), id = kwargs['id'])        
+        user_id = user.id
+        
+        if user_id != request.user.id: #Code to ensure the correct user can resend email verification
+            return Response({'message': 'Not Correct user for endpoint'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if user.is_verified:
+            return Response({'message': 'User Already Verified'}, status = status.HTTP_400_BAD_REQUEST)
+
+        user.email_verification_token = None
+        user.email_token_sent_at = None
+        email_verification_flow(user)
+        return Response({'message':'Email Verification Re-sent'},
+                                                     status = status.HTTP_200_OK)
+
+
+
