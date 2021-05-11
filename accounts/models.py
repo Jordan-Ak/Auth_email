@@ -1,6 +1,9 @@
+import secrets
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import ugettext_lazy as _
+from django.utils import timezone
+from datetime import timedelta
 
 from accounts.managers import CustomUserManager
 from common.models import BaseModel
@@ -29,3 +32,25 @@ class CustomUser(AbstractUser, BaseModel):
 
     def __str__(self) -> str:
         return self.email
+
+'''
+class EmailVerification(models.Model, BaseModel):
+    user = models.ForeignKey(_('User'),CustomUser, on_delete = models.SET_NULL)
+    email_verification_token = models.CharField(_('Email Verification Token'), max_length = 51,
+                                                unique = True, null = True,)
+    email_token_sent_at = models.DateTimeField(_('Email Token Sent at'),null = True)
+
+    def generate_email_verification_token(self) -> None:
+        self.email_verification_token = secrets.token_urlsafe(51)
+        self.email_token_sent_at = timezone.now()
+        self.save()
+
+    def has_email_verification_token_expired(self) -> bool:
+        return self.email_confirmation_sent_at > self.email_confirmation_sent_at + timedelta(hours=24)
+
+    def confirm_email(self) -> None:
+        self.email_confirmation_token = None
+        self.email_confirmation_sent_at = None
+        self.is_verified = True
+        self.save()
+'''

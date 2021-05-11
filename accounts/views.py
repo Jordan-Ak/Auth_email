@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import permissions
-from rest_framework import generics
+from rest_framework import generics, serializers
 
 from drf_yasg.utils import swagger_auto_schema
 
@@ -90,6 +90,11 @@ class UserPasswordChangeView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def put(self, request, *args, **kwargs):
+        user = get_user_model().objects.get(id = kwargs['id'])
+        user_id = user.id
+        if user_id != request.user.id: #Code to ensure the correct user can change the password
+            raise serializers.ValidationError({"Not correct user for endpoint"})
+
         partial = kwargs.pop('partial', False)
         serializer = self.serializer_class(data = request.data, instance=request.user,
                                                         context={'request': request})
@@ -103,8 +108,9 @@ class UserPasswordChangeView(generics.UpdateAPIView):
     queryset = get_user_model().objects.all()
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = PasswordChangeSerializer
+    lookup_url_kwarg = 'id'
 
     def put(self, request, *args, **kwargs):
         self.update(request, *args, **kwargs)
         return  Response({'message': 'Password has been changed successfully'}, status=status.HTTP_200_OK)
-'''       
+'''

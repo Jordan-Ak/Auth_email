@@ -10,5 +10,5 @@ urlpatterns = [
     path('signup/', SignUpView.as_view(), name = 'sign-up'),
     path('@me/<str:email>/', CurrentUserView.as_view(), name = 'current-user'),
     path('destroy/<str:email>/', UserDeleteView.as_view(), name = 'user-delete'),
-    path('password/change/<str:pk>/', UserPasswordChangeView.as_view(), name = 'password-change')
+    path('password/change/<str:id>/', UserPasswordChangeView.as_view(), name = 'password-change')
 ]

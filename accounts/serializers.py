@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import serializers
 from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework.validators import UniqueValidator
@@ -35,7 +36,8 @@ class UserSerializer(serializers.ModelSerializer):
         model = get_user_model()
         fields = ('id','email','first_name','last_name','phone_no','is_verified','date_created', 'password',
                     'password2')
-        read_only_fields = ('id','is_verified','date_created','date_updated','is_staff','is_active',)
+        read_only_fields = ('id','is_verified','date_created','date_updated','is_staff','is_active',
+                            'password_last_changed')
 
 
     def validate(self, attrs):
@@ -70,10 +72,11 @@ class PasswordChangeSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(write_only = True, required = True,
                                     validators = [validate_password])
     old_password = serializers.CharField(write_only = True, required = True)
+    password_last_changed = serializers.DateTimeField(read_only = True,)
 
     class Meta:
         model = get_user_model()
-        fields = ('old_password', 'password', 'password2')
+        fields = ('old_password', 'password', 'password2','password_last_changed')
 
     def validate(self, attrs):
         if attrs['password'] != attrs['password2']:
@@ -82,6 +85,7 @@ class PasswordChangeSerializer(serializers.ModelSerializer):
         return attrs
 
     def validate_old_password(self, value):
+               
         user = self.context['request'].user
         if not user.check_password(value):
             raise serializers.ValidationError({"old_password": "Old password is not correct"})
@@ -90,6 +94,7 @@ class PasswordChangeSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
 
         instance.set_password(validated_data['password'])
+        instance.password_last_changed = timezone.now()
         instance.save()
 
         return instance
