@@ -32,6 +32,12 @@ class CustomUser(AbstractUser, BaseModel):
                                                 unique = True, null = True,)
     email_token_sent_at = models.DateTimeField(_('Email Token Sent at'),null = True)
 
+    password_reset_token = models.CharField(_('Password Reset Token'), max_length = 255,
+                                                unique = True, null = True,)
+    
+    password_reset_sent_at = models.DateTimeField(_('Password Reset Sent at'), null = True,)
+    #Forgot to add a try incase verification token produces same token twice
+
     def generate_email_verification_token(self) -> None:
         self.email_verification_token = secrets.token_urlsafe(50)
         self.email_token_sent_at = timezone.now()
@@ -44,6 +50,19 @@ class CustomUser(AbstractUser, BaseModel):
         self.email_verification_token = None
         self.email_token_sent_at = None
         self.is_verified = True
+        self.save()
+
+    def generate_password_reset_token(self) -> None:
+        self.password_reset_token = secrets.token_urlsafe(50)
+        self.password_reset_sent_at = timezone.now()
+        self.save()
+    
+    def has_password_reset_token_expired(self) -> bool:
+        return self.password_reset_sent_at > self.password_reset_sent_at + timedelta(hours=24)
+
+    def confirm_reset(self) -> None:
+        self.password_reset_token = None
+        self.password_reset_sent_at = None
         self.save()
 
     

@@ -7,10 +7,16 @@ from rest_framework.generics import get_object_or_404
 
 from drf_yasg.utils import swagger_auto_schema
 
-from accounts.serializers import UserSerializer, PasswordChangeSerializer
+
+from accounts.serializers import (PasswordResetConfirmSerializer, 
+                                  PasswordResetSerializer, 
+                                  UserSerializer, 
+                                  PasswordChangeSerializer)
+
 from accounts.serializers import email_verification_flow
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
 
 # Create your views here.
 
@@ -174,4 +180,57 @@ class UserResendEmailVerificationView(APIView):
                                                      status = status.HTTP_200_OK)
 
 
+class PasswordResetSendView(APIView):
+    permission_classes = [permissions.AllowAny]
+    serializer_class = PasswordResetSerializer
 
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        user = get_object_or_404(get_user_model(),email = data['email'])
+        
+        if not user:
+            return Response({'message': "Email does not exist."})
+    
+        user.generate_password_reset_token()
+        mail_message = 'This is your Password Reset link'
+        send_mail(
+        'Password Reset at AUTH',
+        f'{mail_message}  http://127.0.0.1:8000/accounts/password/reset/{user.password_reset_token}/',
+        'from admin@email.com',
+        [f'{user.email}'],
+        fail_silently = False,)
+
+        return Response({'message':'Password Reset sent successfully'},
+                                                     status = status.HTTP_200_OK)
+
+class PasswordResetConfirmView(APIView):
+    serializer_class = PasswordResetConfirmSerializer
+    permission_classes = [permissions.AllowAny]
+
+
+    @swagger_auto_schema(operation_id = 'User-GET', operation_description = 'User password reset confirm',
+                            request_body = PasswordChangeSerializer,
+                            responses = {'200': 'Fill in password reset fields'})
+    def get(self, request, *args, **kwargs):
+        user = get_object_or_404(get_user_model(),
+                                    password_reset_token = kwargs['password_reset_token'])
+        if user:
+            return Response({'message': 'Fill-in new password fields'})
+    
+    @swagger_auto_schema(operation_id = 'User-PUT', operation_description = 'User password reset confirm',
+                            request_body = PasswordChangeSerializer,
+                            responses = {'200': 'User Password reset change successful'})
+    def put(self, request, *args, **kwargs):
+        user= get_object_or_404(get_user_model(),
+                                    password_reset_token = kwargs['password_reset_token'])
+        if user:
+            if user.has_password_reset_token_expired():
+                return Response({'error': 'Token is expired'}, status=status.HTTP_400_BAD_REQUEST)
+       
+            else:
+                serializer = self.serializer_class(data = request.data, instance=user,
+                                                        context={'request': request})
+                serializer.is_valid(raise_exception = True)
+                serializer.save()
+                user.confirm_reset()
+                return  Response({'message': 'Your Password has been reset.'}, status=status.HTTP_200_OK)

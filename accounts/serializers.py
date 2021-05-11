@@ -91,6 +91,7 @@ class PasswordChangeSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
         fields = ('old_password', 'password', 'password2','password_last_changed')
+        read_only_fields = ('password_last_changed')
 
     def validate(self, attrs) -> str:
         if attrs['password'] != attrs['password2']:
@@ -108,6 +109,37 @@ class PasswordChangeSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data) -> get_user_model():
 
         instance.set_password(validated_data['password'])
+        instance.password_last_changed = timezone.now()
+        instance.save()
+
+        return instance
+
+class PasswordResetSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField()
+
+    class Meta:
+        model = get_user_model()
+        fields = ('email',)
+
+class PasswordResetConfirmSerializer(serializers.ModelSerializer):
+    new_password = serializers.CharField(write_only = True, required = True,
+                                    validators = [validate_password])
+    new_password2 = serializers.CharField(write_only = True, required = True,
+                                    validators = [validate_password])
+
+    class Meta:
+        model = get_user_model()
+        fields = ('new_password', 'new_password2',)
+    
+    def validate(self, attrs) -> str:
+        if attrs['new_password'] != attrs['new_password2']:
+            raise serializers.ValidationError({"password": "Password fields didn't match."})
+
+        return attrs
+
+    def update(self, instance, validated_data) -> get_user_model():
+
+        instance.set_password(validated_data['new_password'])
         instance.password_last_changed = timezone.now()
         instance.save()
 
