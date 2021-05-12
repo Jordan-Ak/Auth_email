@@ -91,7 +91,7 @@ class PasswordChangeSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
         fields = ('old_password', 'password', 'password2','password_last_changed')
-        read_only_fields = ('password_last_changed')
+        read_only_fields = ('password_last_changed',)
 
     def validate(self, attrs) -> str:
         if attrs['password'] != attrs['password2']:
