@@ -105,9 +105,9 @@ class UserPasswordChangeView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
 
-    #@swagger_auto_schema(operation_id = 'User-PUT', operation_description = 'User password change',
-     #                       request_body = PasswordChangeSerializer,
-      #                      responses = {'200': 'User Password change successful'})
+    @swagger_auto_schema(operation_id='password_change', operation_description='changing user password',
+                         request_body=PasswordChangeSerializer,
+                         responses={'200': 'Password Changed successfully'})
     def put(self, request, *args, **kwargs):
         user = get_object_or_404(get_user_model(),id = kwargs['id'])
         user_id = user.id
@@ -138,9 +138,9 @@ class UserPasswordChangeView(generics.UpdateAPIView):
 class UserEmailVerificationView(APIView):
     permission_classes = [permissions.AllowAny]
 
-    #@swagger_auto_schema(operation_id = 'User-GET', operation_description = 'User password change',
-     #                       request_body = 'UserEmailVerificationView',
-      #                      responses = {'200': 'User email verified successfully'})
+    @swagger_auto_schema(operation_id = 'User-GET', operation_description = 'User password change',
+                            request_body = None,
+                            responses = {'200': 'User email verified successfully'})
     def get(self, request, *args, **kwargs):
         #user = self.request.user
         user= get_object_or_404(get_user_model(),
@@ -159,9 +159,9 @@ class UserEmailVerificationView(APIView):
 class UserResendEmailVerificationView(APIView):
     permissions_classes = [permissions.IsAuthenticated]
 
-    #@swagger_auto_schema(operation_id = 'User-POST', operation_description = 'User resend email verification',
-     #                       request_body = 'UserResendEmailVerificationView',
-      #                      responses = {'200': 'Verification mail sent successfully'})
+    @swagger_auto_schema(operation_id = 'User-POST', operation_description = 'User resend email verification',
+                            request_body = None,
+                            responses = {'200': 'Verification mail sent successfully'})
     def post(self, request, *args, **kwargs):
         
         user = get_object_or_404(get_user_model(), id = kwargs['id'])        
@@ -184,6 +184,10 @@ class PasswordResetSendView(APIView):
     permission_classes = [permissions.AllowAny]
     serializer_class = PasswordResetSerializer
 
+
+    @swagger_auto_schema(operation_id = 'User-GET', operation_description = 'User password reset confirm',
+                            request_body = PasswordResetSerializer,
+                            responses = {'200': 'Password Reset sent Successfully'})
     def post(self, request, *args, **kwargs):
         data = request.data
         user = get_object_or_404(get_user_model(),email = data['email'])
@@ -208,18 +212,18 @@ class PasswordResetConfirmView(APIView):
     permission_classes = [permissions.AllowAny]
 
 
-    #@swagger_auto_schema(operation_id = 'User-GET', operation_description = 'User password reset confirm',
-     #                       request_body = PasswordChangeSerializer,
-      #                      responses = {'200': 'Fill in password reset fields'})
+    @swagger_auto_schema(operation_id = 'User-GET', operation_description = 'User password reset confirm',
+                            request_body = None,
+                            responses = {'200': 'Fill in password reset fields'})
     def get(self, request, *args, **kwargs):
         user = get_object_or_404(get_user_model(),
                                     password_reset_token = kwargs['password_reset_token'])
         if user:
             return Response({'message': 'Fill-in new password fields'})
     
-    #@swagger_auto_schema(operation_id = 'User-PUT', operation_description = 'User password reset confirm',
-     #                       request_body = PasswordChangeSerializer,
-      #                      responses = {'200': 'User Password reset change successful'})
+    @swagger_auto_schema(operation_id = 'User-PUT', operation_description = 'User password reset confirm',
+                            request_body = PasswordResetConfirmSerializer,
+                            responses = {'200': 'User Password reset change successful'})
     def put(self, request, *args, **kwargs):
         user= get_object_or_404(get_user_model(),
                                     password_reset_token = kwargs['password_reset_token'])
