@@ -3,6 +3,7 @@ from django.core.mail import send_mail
 from rest_framework import serializers
 from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework.validators import UniqueValidator
+from accounts.tasks import email_verification_flow
 
 
 from django.utils.translation import ugettext_lazy as _
@@ -20,9 +21,9 @@ def validate_password(password) -> str : #For custom password validation
     elif not any(char.isalpha() for char in password):
         raise serializers.ValidationError(_('Password must contain at least one letter.'))
     return password
-
+'''
 def email_verification_flow(user) -> None:  # To send verification email
-    user.generate_email_verification_token()
+    
     mail_message = 'This is your email verification link'
     send_mail(
         'Email Verification at AUTH',
@@ -30,7 +31,7 @@ def email_verification_flow(user) -> None:  # To send verification email
         'from admin@email.com',
         [f'{user.email}'],
         fail_silently = False,)
-
+'''
 class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required = True,
                             validators=[UniqueValidator(queryset=get_user_model().objects.all())])
@@ -65,8 +66,9 @@ class UserSerializer(serializers.ModelSerializer):
                                 phone_no = validated_data['phone_no'],
                                 )
         user.set_password(validated_data['password'])
-     
-        email_verification_flow(user)
+
+        user.generate_email_verification_token()
+        email_verification_flow.delay(user.email, user.email_verification_token)
         
         user.save()
         return user

@@ -13,7 +13,7 @@ from accounts.serializers import (PasswordResetConfirmSerializer,
                                   UserSerializer, 
                                   PasswordChangeSerializer)
 
-from accounts.serializers import email_verification_flow
+from accounts.tasks import email_verification_flow
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
@@ -175,7 +175,8 @@ class UserResendEmailVerificationView(APIView):
 
         user.email_verification_token = None
         user.email_token_sent_at = None
-        email_verification_flow(user)
+        user.generate_email_verification_token()
+        email_verification_flow.delay(user.email, user.email_verification_token)
         return Response({'message':'Email Verification Re-sent'},
                                                      status = status.HTTP_200_OK)
 
