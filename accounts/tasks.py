@@ -23,6 +23,16 @@ def email_verification_flow(email, token) -> None:  # To send verification email
         fail_silently = False,)
 
 @shared_task
+def password_send_mail(email, token) -> None:
+    mail_message = 'This is your Password Reset link'
+    send_mail(
+        'Password Reset at AUTH',
+        f'{mail_message}  http://127.0.0.1:8000/accounts/password/reset/{token}/',
+        'from admin@email.com',
+        [f'{email}'],
+        fail_silently = False,)
+
+@shared_task
 def generate_email_verification_token() -> None:
         email_verification_token = secrets.token_urlsafe(50)
         email_token_sent_at = timezone.now()

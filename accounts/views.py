@@ -14,6 +14,7 @@ from accounts.serializers import (PasswordResetConfirmSerializer,
                                   PasswordChangeSerializer)
 
 from accounts.tasks import email_verification_flow
+from accounts.tasks import password_send_mail
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
@@ -198,12 +199,7 @@ class PasswordResetSendView(APIView):
     
         user.generate_password_reset_token()
         mail_message = 'This is your Password Reset link'
-        send_mail(
-        'Password Reset at AUTH',
-        f'{mail_message}  http://127.0.0.1:8000/accounts/password/reset/{user.password_reset_token}/',
-        'from admin@email.com',
-        [f'{user.email}'],
-        fail_silently = False,)
+        password_send_mail.delay(user.email, user.password_reset_token)
 
         return Response({'message':'Password Reset sent successfully'},
                                                      status = status.HTTP_200_OK)
