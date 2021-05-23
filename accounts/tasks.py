@@ -33,10 +33,10 @@ def password_send_mail(email, token) -> None:
         fail_silently = False,)
 
 @shared_task
-def generate_email_verification_token() -> None:
-        email_verification_token = secrets.token_urlsafe(50)
-        email_token_sent_at = timezone.now()
-       # self.save()
+def generate_email_verification_token_sh() -> str:
+    email_verification_token = secrets.token_urlsafe(50)
+    #email_token_sent_at = timezone.now()
+    return email_verification_token
       
 @shared_task
 def add(a,b):

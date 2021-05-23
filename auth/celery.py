@@ -5,7 +5,7 @@ from django.conf import settings
 
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'auth.settings')
-app = Celery('auth')
+app = Celery('auth', backend='rpc://') # added a result backend here to send results when needed
 
 app.config_from_object('django.conf:settings', namespace = 'CELERY')
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
