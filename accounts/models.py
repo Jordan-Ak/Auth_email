@@ -8,7 +8,7 @@ from datetime import timedelta
 from accounts.managers import CustomUserManager
 from common.models import BaseModel
 from phonenumber_field.modelfields import PhoneNumberField
-from accounts.tasks import generate_email_verification_token_sh
+from accounts.tasks import generate_verification_token_sh
 
 # Create your models here.
 '''
@@ -42,7 +42,7 @@ class CustomUser(AbstractUser, BaseModel):
     def generate_email_verification_token(self) -> None:
         #self.email_verification_token = secrets.token_urlsafe(50)
         self.email_token_sent_at = timezone.now()
-        self.email_verification_token = generate_email_verification_token_sh.apply_async().get() #both functions at the end enable celery return json data
+        self.email_verification_token = generate_verification_token_sh.apply_async().get() #both functions at the end enable celery return json data
         self.save()
 
     def has_email_verification_token_expired(self) -> bool:
@@ -55,7 +55,7 @@ class CustomUser(AbstractUser, BaseModel):
         self.save()
 
     def generate_password_reset_token(self) -> None:
-        self.password_reset_token = secrets.token_urlsafe(50)
+        self.password_reset_token = generate_verification_token_sh.apply_async().get()
         self.password_reset_sent_at = timezone.now()
         self.save()
     
